@@ -1,8 +1,8 @@
-﻿using Checkers.Classes;
+﻿using Checkers.Draw;
+using Checkers.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
-using static Android.Webkit.WebSettings;
 
 namespace Checkers;
 
@@ -11,6 +11,8 @@ public partial class MainPage : ContentPage
     private double boardWidth;
     private double boardHeight;
     private double rectSize;
+    public static UserPlayer user = new UserPlayer();
+    public static OpponentPlayer opponent = new OpponentPlayer();
 
     public MainPage()
     {
@@ -26,63 +28,28 @@ public partial class MainPage : ContentPage
         SKCanvas canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.White);
 
-        using (var paint = new SKPaint { Color = SKColors.Black })
-        {
-            for (double y = 0; y < boardHeight; y+=rectSize)
-            {
-                for (double x = rectSize; x < boardWidth; x+=(2*rectSize))
-                {
-                    if ((y/rectSize % 2 != 0) && (x/rectSize % 2 != 0))
-                    {
-                        x -= rectSize;
-                    }
-                    canvas.DrawRect((float)x, (float)y, (float)rectSize, (float)rectSize, paint);
-                }
-            }
-        }
+        DrawElements.DrawBoardElements(new ElementClass(ElementForm.Rect, SKColors.Black, (float)boardHeight,  (float)boardWidth, (float)rectSize), canvas);
+        DrawCheckers(canvas);
     }
 
     private void DrawCheckers(SKCanvas canvas)
     {
-        using (var paint = new SKPaint { Color = SKColors.White })
-        {
-            for (double y = 0; y < rectSize * 3; y += rectSize)
-            {
-                for (double x = rectSize; x < boardWidth; x += (2 * rectSize))
-                {
-                    if ((y / rectSize % 2 != 0) && (x / rectSize % 2 != 0))
-                    {
-                        x -= rectSize;
-                    }
-                    canvas.DrawCircle((float)(x + rectSize / 2), (float)(y + rectSize / 2), (float)(rectSize / 2 - 5), paint);
-                }
-            }
-        }
-
-        using (var paint = new SKPaint { Color = SKColors.Red })
-        {
-            for (double y = boardHeight; y > boardHeight - rectSize * 4; y -= rectSize)
-            {
-                for (double x = 0; x < boardWidth; x += (2 * rectSize))
-                {
-                    if ((y / rectSize % 2 == 0) && (x / rectSize % 2 == 0))
-                    {
-                        x -= rectSize;
-                    }
-                    canvas.DrawCircle((float)(x + rectSize / 2), (float)(y + rectSize / 2), (float)(rectSize / 2 - 5), paint);
-                }
-            }
-        }
+        //TODO color of checkers should be based on user side, not hardcoded
+        DrawElements.DrawBoardElements(new ElementClass(ElementForm.Circle, SKColors.White, (float)(rectSize*3), (float)boardWidth, (float)rectSize), canvas);
+        DrawElements.DrawBoardElements(new ElementClass(ElementForm.Circle, SKColors.Red, (float)((-1)*(boardHeight - rectSize * 4)), (float)boardWidth, (float)rectSize, true), canvas);
+    }
 
     private void OnCanvasTouch(object sender, SKTouchEventArgs e)
     {
         float x = e.Location.X;
         float y = e.Location.Y;
-
+        Point touch = new Point(x, y);
+        
         switch (e.ActionType)
         {
             case SKTouchAction.Pressed:
-                    break;
+                user.CheckPosition(touch);
+                break;
 
             case SKTouchAction.Moved:
                 break;

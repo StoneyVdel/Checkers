@@ -2,5 +2,4 @@
 
 public class User
 {
-    private List<Checker> checkers;
 }
