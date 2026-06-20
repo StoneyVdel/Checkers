@@ -1,23 +1,46 @@
 ﻿using Checkers.Checker;
+using Checkers.Elements;
 using SkiaSharp;
 
 namespace Checkers.Player;
 
 public partial class BasePlayer
 {
-    private List<CheckerObject>? checkers;
+    protected List<CheckerObject> checkers;
 
-    public void AddChecker(CheckerObject checker)
+    public BasePlayer()
     {
-        if (checkers == null)
-        {
-            checkers = new List<CheckerObject>();
-        }
-        checkers.Add(checker);
+        this.checkers = new List<CheckerObject>();
+    }
+
+    public void AddChecker(ElementClass element)
+    {
+        checkers.Add(new CheckerObject(element));
     }
 
     public void CheckPosition(Point touch)
     {
-        checkers.ForEach(checker => checker.isSelected(touch));
+        if (checkers != null)
+        {
+            foreach (var checker in checkers)
+            {
+                if(checker.isSelected(touch))
+                {
+                    checker.element.Color = SKColors.Purple;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void Draw(SKCanvas canvas)
+    {
+        if (checkers is not null)
+        {
+            foreach (var checker in checkers)
+            {
+                checker.Draw(canvas);
+            }
+        }
     }
 }

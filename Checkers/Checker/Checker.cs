@@ -1,30 +1,30 @@
-﻿using SkiaSharp;
+﻿using Checkers.Elements;
+using SkiaSharp;
 
 namespace Checkers.Checker;
 
 public class CheckerObject
 {
-    private Point point {  get; set; }
+    public ElementClass element { get; set; }
 
-    private float radius { get; set; }
+    public bool isKing {  get; set; }
 
-    public SKColor color { get; set; }
-
-    public CheckerObject(Point point, float radius, SKColor color)
+    public CheckerObject(ElementClass element)
     {
-        this.point = point;
-        this.radius = radius;
-        this.color = color;
+        this.element = element;
+        this.isKing = false;
     }
 
-    public void isSelected(Point touch)
+    public bool isSelected(Point touch)
     {
-        var dx = touch.X - this.point.X;
-        var dy = touch.Y - this.point.Y;
+        var dx = touch.X - this.element.Point.X;
+        var dy = touch.Y - this.element.Point.Y;
 
-        if ((dx * dx + dy * dy) <= (radius * radius))
-        {
-            this.color = SKColors.Purple;
-        }
+        return ((dx * dx + dy * dy) <= (element.Radius * element.Radius));
+    }
+
+    public void Draw(SKCanvas canvas)
+    {
+        canvas.DrawCircle((float)element.Point.X, (float)element.Point.Y, element.Radius, new SKPaint() { Color = element.Color });
     }
 }
