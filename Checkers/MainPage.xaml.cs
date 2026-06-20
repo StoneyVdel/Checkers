@@ -1,20 +1,24 @@
-﻿using Checkers.Classes;
+﻿using Checkers.Elements;
+using Checkers.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
-using static Android.Webkit.WebSettings;
 
 namespace Checkers;
 
 public partial class MainPage : ContentPage
 {
-    private double boardWidth;
-    private double boardHeight;
-    private double rectSize;
+    private bool gameStart;
+    private int boardWidth;
+    private int boardHeight;
+    private int rectSize;
+    public static UserPlayer user = new UserPlayer();
+    public static OpponentPlayer opponent = new OpponentPlayer();
 
     public MainPage()
     {
         InitializeComponent();
+        gameStart = true;
     }
 
     private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -26,63 +30,86 @@ public partial class MainPage : ContentPage
         SKCanvas canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.White);
 
+        if (gameStart)
+        {
+            gameStart = false;
+            PrepareBoard(canvas);
+        }
+
+        DrawElements(canvas);
+    }
+
+    private void PrepareBoard(SKCanvas canvas)
+    {
         using (var paint = new SKPaint { Color = SKColors.Black })
         {
-            for (double y = 0; y < boardHeight; y+=rectSize)
+            for (int row = 0; row < boardHeight; row += rectSize)
             {
-                for (double x = rectSize; x < boardWidth; x+=(2*rectSize))
+                for (int col = 0; col < boardWidth; col += rectSize)
                 {
-                    if ((y/rectSize % 2 != 0) && (x/rectSize % 2 != 0))
+                    bool isRowEven = (row / rectSize % 2 == 0);
+                    bool isColEven = (col / rectSize % 2 == 0);
+
+                    if ((isRowEven && !isColEven) || (!isRowEven && isColEven))
                     {
-                        x -= rectSize;
+                        var sqRadius = rectSize / 2;
+                        var point = new Point(col + sqRadius, row + sqRadius);
+                        var radius = rectSize / 2 - 5;
+
+                        if ((row < (rectSize * 3)))
+                        {
+                            var element = new ElementClass(point, radius, SKColors.Green);
+                            opponent.AddChecker(element);
+                        }
+                        else if ((row >= 5 * rectSize))
+                        {
+                            var element = new ElementClass(point, radius, SKColors.Red);
+                            user.AddChecker(element);
+                        }
                     }
-                    canvas.DrawRect((float)x, (float)y, (float)rectSize, (float)rectSize, paint);
                 }
             }
         }
     }
 
-    private void DrawCheckers(SKCanvas canvas)
+    private void DrawElements(SKCanvas canvas)
     {
-        using (var paint = new SKPaint { Color = SKColors.White })
-        {
-            for (double y = 0; y < rectSize * 3; y += rectSize)
-            {
-                for (double x = rectSize; x < boardWidth; x += (2 * rectSize))
-                {
-                    if ((y / rectSize % 2 != 0) && (x / rectSize % 2 != 0))
-                    {
-                        x -= rectSize;
-                    }
-                    canvas.DrawCircle((float)(x + rectSize / 2), (float)(y + rectSize / 2), (float)(rectSize / 2 - 5), paint);
-                }
-            }
-        }
+        DrawBoard(canvas);
+        opponent.Draw(canvas);
+        user.Draw(canvas);
+    }
 
-        using (var paint = new SKPaint { Color = SKColors.Red })
+    private void DrawBoard(SKCanvas canvas)
+    {
+        using (var paint = new SKPaint { Color = SKColors.Black })
         {
-            for (double y = boardHeight; y > boardHeight - rectSize * 4; y -= rectSize)
+            for (int row = 0; row<=boardHeight; row += rectSize)
             {
-                for (double x = 0; x < boardWidth; x += (2 * rectSize))
+                for (int col = 0; col<=boardWidth; col += rectSize)
                 {
-                    if ((y / rectSize % 2 == 0) && (x / rectSize % 2 == 0))
+                    bool isRowEven = (row / rectSize % 2 == 0);
+                    bool isColEven = (col / rectSize % 2 == 0);
+
+                    if ((isRowEven && !isColEven) || (!isRowEven && isColEven))
                     {
-                        x -= rectSize;
+                        canvas.DrawRect((float)col, (float)row, rectSize, rectSize, paint);
                     }
-                    canvas.DrawCircle((float)(x + rectSize / 2), (float)(y + rectSize / 2), (float)(rectSize / 2 - 5), paint);
                 }
             }
         }
+    }
 
     private void OnCanvasTouch(object sender, SKTouchEventArgs e)
     {
         float x = e.Location.X;
         float y = e.Location.Y;
-
+        Point touch = new Point(x, y);
+        
         switch (e.ActionType)
         {
             case SKTouchAction.Pressed:
-                    break;
+                user.CheckPosition(touch);
+                break;
 
             case SKTouchAction.Moved:
                 break;
