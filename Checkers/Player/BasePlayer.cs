@@ -6,19 +6,14 @@ namespace Checkers.Player;
 
 public partial class BasePlayer
 {
-    protected List<CheckerObject> checkers;
-
-    public BasePlayer()
-    {
-        this.checkers = new List<CheckerObject>();
-    }
+    public List<CheckerObject> checkers = new List<CheckerObject>();
 
     public void AddChecker(ElementClass element)
     {
         checkers.Add(new CheckerObject(element));
     }
 
-    public void CheckPosition(Point touch)
+    public CheckerObject? CheckPosition(Point touch)
     {
         if (checkers != null)
         {
@@ -26,11 +21,14 @@ public partial class BasePlayer
             {
                 if(checker.isSelected(touch))
                 {
-                    checker.element.Color = SKColors.Purple;
-                    break;
+                    checker.element.OldPoint = checker.element.Point;
+
+                    return checker;
                 }
             }
         }
+
+        return null;
     }
 
     public void Draw(SKCanvas canvas)
@@ -42,5 +40,17 @@ public partial class BasePlayer
                 checker.Draw(canvas);
             }
         }
+    }
+
+    public List<Point> GetPoints()
+    {
+        var points = new List<Point>(); 
+
+        foreach(var checker in checkers)
+        {
+            points.Add(checker.GetPoint());
+        }
+
+        return points;
     }
 }

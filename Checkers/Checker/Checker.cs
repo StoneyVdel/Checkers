@@ -7,7 +7,7 @@ public class CheckerObject
 {
     public ElementClass element { get; set; }
 
-    public bool isKing {  get; set; }
+    public bool isKing { get; set; }
 
     public CheckerObject(ElementClass element)
     {
@@ -26,5 +26,15 @@ public class CheckerObject
     public void Draw(SKCanvas canvas)
     {
         canvas.DrawCircle((float)element.Point.X, (float)element.Point.Y, element.Radius, new SKPaint() { Color = element.Color });
+    }
+
+    public void SnapBack()
+    {
+        element.Point = element.OldPoint;
+    }
+
+    public Point GetPoint()
+    {
+        return element.Point;
     }
 }

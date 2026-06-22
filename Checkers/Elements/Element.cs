@@ -2,13 +2,11 @@
 
 namespace Checkers.Elements;
 
-public class ElementClass
+public class ElementClass : BaseElement
 {
-    public Point Point {  get; set; }
+    public Point OldPoint { get; set; }
 
     public float Radius { get; set; }
-
-    public SKColor Color { get; set; }
 
     public ElementClass(Point point, float radius, SKColor color)
     {

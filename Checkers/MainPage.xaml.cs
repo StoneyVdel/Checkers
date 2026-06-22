@@ -1,17 +1,18 @@
-﻿using Checkers.Elements;
+﻿using Checkers.Checker;
+using Checkers.Elements;
 using Checkers.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
+using System.Diagnostics;
 
 namespace Checkers;
 
 public partial class MainPage : ContentPage
 {
     private bool gameStart;
-    private int boardWidth;
-    private int boardHeight;
-    private int rectSize;
+    private CheckerObject? selectedChecker;
+    private BoardElement boardElement = new BoardElement();
     public static UserPlayer user = new UserPlayer();
     public static OpponentPlayer opponent = new OpponentPlayer();
 
@@ -23,10 +24,6 @@ public partial class MainPage : ContentPage
 
     private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs e)
     {
-        boardWidth = 480;
-        boardHeight = 480;
-        rectSize = boardWidth/8;
-
         SKCanvas canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.White);
 
@@ -36,6 +33,9 @@ public partial class MainPage : ContentPage
             PrepareBoard(canvas);
         }
 
+        Debug.WriteLine("Update Started!");
+        UpdateElements();
+        Debug.WriteLine("Update Ended!");
         DrawElements(canvas);
     }
 
@@ -43,25 +43,27 @@ public partial class MainPage : ContentPage
     {
         using (var paint = new SKPaint { Color = SKColors.Black })
         {
-            for (int row = 0; row < boardHeight; row += rectSize)
+            for (int row = 0; row < boardElement.boardHeight; row += boardElement.rectHeight)
             {
-                for (int col = 0; col < boardWidth; col += rectSize)
+                for (int col = 0; col < boardElement.boardWidth; col += boardElement.rectWidth)
                 {
-                    bool isRowEven = (row / rectSize % 2 == 0);
-                    bool isColEven = (col / rectSize % 2 == 0);
+                    bool isRowEven = (row / boardElement.rectHeight % 2 == 0);
+                    bool isColEven = (col / boardElement.rectWidth % 2 == 0);
 
                     if ((isRowEven && !isColEven) || (!isRowEven && isColEven))
                     {
-                        var sqRadius = rectSize / 2;
-                        var point = new Point(col + sqRadius, row + sqRadius);
-                        var radius = rectSize / 2 - 5;
+                        boardElement.AddRect(new Point(col, row));
 
-                        if ((row < (rectSize * 3)))
+                        var sqRadius = boardElement.rectWidth / 2;
+                        var point = new Point(col + sqRadius, row + sqRadius);
+                        var radius = sqRadius - 5;
+
+                        if ((row < (boardElement.rectHeight * 3)))
                         {
-                            var element = new ElementClass(point, radius, SKColors.Green);
+                            var element = new ElementClass(point, radius, SKColors.White);
                             opponent.AddChecker(element);
                         }
-                        else if ((row >= 5 * rectSize))
+                        else if ((row >= 5 * boardElement.rectHeight))
                         {
                             var element = new ElementClass(point, radius, SKColors.Red);
                             user.AddChecker(element);
@@ -74,29 +76,17 @@ public partial class MainPage : ContentPage
 
     private void DrawElements(SKCanvas canvas)
     {
-        DrawBoard(canvas);
+        boardElement.Draw(canvas);
         opponent.Draw(canvas);
         user.Draw(canvas);
     }
 
-    private void DrawBoard(SKCanvas canvas)
+    private void UpdateElements()
     {
-        using (var paint = new SKPaint { Color = SKColors.Black })
-        {
-            for (int row = 0; row<=boardHeight; row += rectSize)
-            {
-                for (int col = 0; col<=boardWidth; col += rectSize)
-                {
-                    bool isRowEven = (row / rectSize % 2 == 0);
-                    bool isColEven = (col / rectSize % 2 == 0);
+        var points = opponent.GetPoints();
+        points.AddRange(user.GetPoints());
 
-                    if ((isRowEven && !isColEven) || (!isRowEven && isColEven))
-                    {
-                        canvas.DrawRect((float)col, (float)row, rectSize, rectSize, paint);
-                    }
-                }
-            }
-        }
+        boardElement.UpdateState(points);
     }
 
     private void OnCanvasTouch(object sender, SKTouchEventArgs e)
@@ -108,14 +98,30 @@ public partial class MainPage : ContentPage
         switch (e.ActionType)
         {
             case SKTouchAction.Pressed:
-                user.CheckPosition(touch);
+                selectedChecker = user.CheckPosition(touch);
+                if (selectedChecker != null)
+                {
+                    boardElement.CheckSelectableRects(selectedChecker.element.OldPoint);
+                }
+
                 break;
 
             case SKTouchAction.Moved:
+                bool isXValid = x > 0 && x < boardElement.boardWidth;
+                bool isYValid = y > 0 && y < boardElement.boardHeight;
+                if (selectedChecker != null && isXValid && isYValid)
+                {
+                    selectedChecker.element.Point = touch;
+                }
                 break;
 
             case SKTouchAction.Released:
-                Console.WriteLine($"Released at ({x}, {y})");
+                if (selectedChecker != null)
+                {
+                    selectedChecker.SnapBack();
+                    selectedChecker = null;
+                }
+
                 break;
         }
 
