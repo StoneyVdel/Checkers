@@ -5,36 +5,41 @@ namespace Checkers.Checker;
 
 public class CheckerObject
 {
-    public ElementClass element { get; set; }
+    public bool IsAttacked = false;
 
-    public bool isKing { get; set; }
+    public BasicChecker basic { get; set; }
 
-    public CheckerObject(ElementClass element)
+    public CheckerObject(ElementClass element, bool isUser)
     {
-        this.element = element;
-        this.isKing = false;
+        this.basic = new BasicChecker(element, isUser);
     }
 
     public bool isSelected(Point touch)
     {
-        var dx = touch.X - this.element.Point.X;
-        var dy = touch.Y - this.element.Point.Y;
+        var dx = touch.X - this.basic.element.Point.X;
+        var dy = touch.Y - this.basic.element.Point.Y;
 
-        return ((dx * dx + dy * dy) <= (element.Radius * element.Radius));
+        return ((dx * dx + dy * dy) <= (basic.element.Radius * basic.element.Radius));
     }
 
     public void Draw(SKCanvas canvas)
     {
-        canvas.DrawCircle((float)element.Point.X, (float)element.Point.Y, element.Radius, new SKPaint() { Color = element.Color });
+        canvas.DrawCircle((float)basic.element.Point.X, (float)basic.element.Point.Y, basic.element.Radius, new SKPaint() { Color = basic.element.Color });
     }
 
     public void SnapBack()
     {
-        element.Point = element.OldPoint;
+        basic.element.Point = basic.element.OldPoint;
     }
 
     public Point GetPoint()
     {
-        return element.Point;
+        return basic.element.Point;
+    }
+
+    public void SetPointAndCord(Point point, BoardCordElement cord)
+    {
+        basic.element.Point = point;
+        basic.element.Cord = cord;
     }
 }

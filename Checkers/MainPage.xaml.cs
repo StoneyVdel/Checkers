@@ -13,8 +13,8 @@ public partial class MainPage : ContentPage
     private bool gameStart;
     private CheckerObject? selectedChecker;
     private BoardElement boardElement = new BoardElement();
-    public static UserPlayer user = new UserPlayer();
-    public static OpponentPlayer opponent = new OpponentPlayer();
+    private static UserPlayer user = new UserPlayer();
+    private static OpponentPlayer opponent = new OpponentPlayer();
 
     public MainPage()
     {
@@ -52,21 +52,30 @@ public partial class MainPage : ContentPage
 
                     if ((isRowEven && !isColEven) || (!isRowEven && isColEven))
                     {
-                        boardElement.AddRect(new Point(col, row));
+                        var boardCol = col / boardElement.rectWidth;
+                        var boardRow = row / boardElement.rectWidth;
+                        var cord = new BoardCordElement(boardCol, boardRow);
+                        var squarePoint = new Point(col, row);
+                        var baseElement = new BaseElement()
+                        {
+                            Point = squarePoint,
+                            Cord = cord
+                        };
+                        boardElement.AddRect(baseElement);
 
                         var sqRadius = boardElement.rectWidth / 2;
-                        var point = new Point(col + sqRadius, row + sqRadius);
+                        var checkerPoint = new Point(col + sqRadius, row + sqRadius);
                         var radius = sqRadius - 5;
 
                         if ((row < (boardElement.rectHeight * 3)))
                         {
-                            var element = new ElementClass(point, radius, SKColors.White);
-                            opponent.AddChecker(element);
+                            var element = new ElementClass(checkerPoint, cord, radius, SKColors.White);
+                            opponent.AddChecker(element, false);
                         }
                         else if ((row >= 5 * boardElement.rectHeight))
                         {
-                            var element = new ElementClass(point, radius, SKColors.Red);
-                            user.AddChecker(element);
+                            var element = new ElementClass(checkerPoint, cord, radius, SKColors.Red);
+                            user.AddChecker(element, true);
                         }
                     }
                 }
@@ -101,9 +110,8 @@ public partial class MainPage : ContentPage
                 selectedChecker = user.CheckPosition(touch);
                 if (selectedChecker != null)
                 {
-                    boardElement.CheckSelectableRects(selectedChecker.element.OldPoint);
+                    boardElement.CheckDiagonals(selectedChecker.basic);
                 }
-
                 break;
 
             case SKTouchAction.Moved:
@@ -111,17 +119,25 @@ public partial class MainPage : ContentPage
                 bool isYValid = y > 0 && y < boardElement.boardHeight;
                 if (selectedChecker != null && isXValid && isYValid)
                 {
-                    selectedChecker.element.Point = touch;
+                    selectedChecker.basic.element.Point = touch;
                 }
                 break;
 
             case SKTouchAction.Released:
                 if (selectedChecker != null)
                 {
-                    selectedChecker.SnapBack();
+                    var (newPoint, newCord) = boardElement.CheckHoveredSquares(touch);
+
+                    if(newPoint.HasValue && newCord != null)
+                    {
+                        selectedChecker.SetPointAndCord(newPoint.Value, newCord);
+                    }
+                    else 
+                    { 
+                        selectedChecker.SnapBack();
+                    }
                     selectedChecker = null;
                 }
-
                 break;
         }
 
