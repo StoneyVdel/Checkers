@@ -8,9 +8,9 @@ public partial class BasePlayer
 {
     public List<CheckerObject> checkers = new List<CheckerObject>();
 
-    public void AddChecker(ElementClass element)
+    public void AddChecker(ElementClass element, bool isUser)
     {
-        checkers.Add(new CheckerObject(element));
+        checkers.Add(new CheckerObject(element, isUser));
     }
 
     public CheckerObject? CheckPosition(Point touch)
@@ -21,7 +21,7 @@ public partial class BasePlayer
             {
                 if(checker.isSelected(touch))
                 {
-                    checker.element.OldPoint = checker.element.Point;
+                    checker.basic.element.OldPoint = checker.basic.element.Point;
 
                     return checker;
                 }
@@ -52,5 +52,10 @@ public partial class BasePlayer
         }
 
         return points;
+    }
+
+    public void DeleteAttacked()
+    {
+        checkers.RemoveAll(x => x.IsAttacked);
     }
 }

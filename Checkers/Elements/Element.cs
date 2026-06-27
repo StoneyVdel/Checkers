@@ -8,10 +8,13 @@ public class ElementClass : BaseElement
 
     public float Radius { get; set; }
 
-    public ElementClass(Point point, float radius, SKColor color)
+    public BoardCordElement Cord { get; set; }
+
+    public ElementClass(Point point, BoardCordElement cord, float radius, SKColor color)
     {
         Point = point;
         Radius = radius;
         Color = color;
+        Cord = cord;
     }
 }
