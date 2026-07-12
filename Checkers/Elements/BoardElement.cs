@@ -8,9 +8,9 @@ public class BoardElement
 {
     private readonly int BoardLength = 8;
 
-    public int boardWidth = 480;
+    public int boardWidth = 640;
 
-    public int boardHeight = 480;
+    public int boardHeight = 640;
 
     public int rectWidth => boardWidth / 8;
 
