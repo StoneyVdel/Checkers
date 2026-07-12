@@ -4,7 +4,9 @@ using Checkers.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Net.Sockets;
 
 namespace Checkers;
 
@@ -16,10 +18,14 @@ public partial class MainPage : ContentPage
     private static UserPlayer user = new UserPlayer();
     private static OpponentPlayer opponent = new OpponentPlayer();
 
+    public ObservableCollection<string> LogEntries { get; set; } = new();
+
     public MainPage()
     {
         InitializeComponent();
+        StartServer();
         gameStart = true;
+        BindingContext = this;
     }
 
     private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -144,5 +150,21 @@ public partial class MainPage : ContentPage
         e.Handled = true;
 
         ((SKCanvasView)sender).InvalidateSurface();
+    }
+
+    private void StartServer()
+    {
+        var ipAddress = Network.Network.GetWindowsIpAddress();
+
+        var logString = "Server created on : " + ipAddress; 
+
+        LogEntries.Add(logString);
+
+        user.ConnectionSocket.Listen();
+    }
+
+    private async void OnJoinServer(object sender, EventArgs args)
+    {
+
     }
 }

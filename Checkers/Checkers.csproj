@@ -66,20 +66,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.71" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.71" />
-		<PackageReference Include="SkiaSharp" Version="3.119.4" />
-		<PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
-		<PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="3.119.4" />
-		<PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.4" />
-		<PackageReference Include="SkiaSharp.Views" Version="3.119.4" />
-		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.4" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.80" />
+		<PackageReference Include="SkiaSharp" Version="4.148.0" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.148.0" />
+		<PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.148.0" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.148.0" />
+		<PackageReference Include="SkiaSharp.Views" Version="4.148.0" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.148.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
 	  <PackageReference Include="SkiaSharp.NativeAssets.iOS">
-	    <Version>3.119.4</Version>
+	    <Version>4.148.0</Version>
 	  </PackageReference>
 	</ItemGroup>
 

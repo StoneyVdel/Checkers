@@ -2,4 +2,5 @@
 
 public class OpponentPlayer : BasePlayer
 {
+    private string opponentIpAddress { get; set; }
 }
