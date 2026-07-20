@@ -22,6 +22,7 @@
                     <HorizontalStackLayout Spacing="6">
                         <Button x:Name="ConnectButton" Text="Connect" Clicked="OnJoinServer" />
                         <Button x:Name="DisconnectButton" Text="Disconnect" IsEnabled="False"/>
+                        <Button x:Name="HostServer" Text="Host Server" Clicked="OnHostServer" />
                     </HorizontalStackLayout>
 
                     <Label x:Name="ClientStatusLabel" Text="Not connected." FontAttributes="Italic"/>
