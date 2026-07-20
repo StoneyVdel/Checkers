@@ -1,0 +1,4 @@
+Network functionality: 
+	- Multiplayer support: Players can connect and play against each other over the internet.
+	- Game logic
+	- Game state synchronization: The game state is synchronized between players to ensure a consistent experience.
