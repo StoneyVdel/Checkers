@@ -23,7 +23,6 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
-        StartServer();
         gameStart = true;
         BindingContext = this;
     }
@@ -39,9 +38,9 @@ public partial class MainPage : ContentPage
             PrepareBoard(canvas);
         }
 
-        Debug.WriteLine("Update Started!");
+        //Debug.WriteLine("Update Started!");
         UpdateElements();
-        Debug.WriteLine("Update Ended!");
+        //Debug.WriteLine("Update Ended!");
         DrawElements(canvas);
     }
 
@@ -154,17 +153,24 @@ public partial class MainPage : ContentPage
 
     private void StartServer()
     {
-        var ipAddress = Network.Network.GetWindowsIpAddress();
+        var hostAddress = Network.Network.GetWindowsIpAddress();
 
-        var logString = "Server created on : " + ipAddress; 
+        var logString = "Server created on : " + hostAddress; 
 
         LogEntries.Add(logString);
 
-        user.ConnectionSocket.Listen();
+        user.ListenForOpponent();
     }
 
     private async void OnJoinServer(object sender, EventArgs args)
     {
+        string endpoint = ClientHostEntry.Text;
 
+        user.JoinServer(endpoint);
+    }
+
+    private async void OnHostServer(object sender, EventArgs args)
+    {
+        StartServer();
     }
 }

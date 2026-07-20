@@ -1,19 +1,23 @@
 ﻿using System.Net;
-using System.Net.Sockets;
+using Checkers.Network;
 
 namespace Checkers.Player;
 
 public class UserPlayer : BasePlayer
 {
-    public Socket ConnectionSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+    private SocketClient socketClient = new SocketClient();
+    private SocketServer socketServer = new SocketServer();
 
-    public async void ListenForOpponent()
+    public void ListenForOpponent()
     {
-        
-        IPEndPoint ep = new IPEndPoint(hostIP, port);
+        socketServer.ListenServer();
+    }
 
-        ConnectionSocket.Bind(ep);
+    public void JoinServer(string endpoint)
+    {
+        var ipAddress = IPAddress.Parse(endpoint);
+        var ep = new IPEndPoint(ipAddress, Network.Network.Port);
 
-        ConnectionSocket.Listen(backlog);
+        socketClient.ClientConnect(ep);
     }
 }

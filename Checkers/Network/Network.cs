@@ -5,6 +5,12 @@ namespace Checkers.Network;
 
 public static class Network
 {
+    public static readonly int Port = 8080;
+
+    public static readonly string Loopback = "127.0.0.1";
+
+    public static readonly int Backlog = 1;
+
     public static string? GetWindowsIpAddress()
     {
         #if WINDOWS
