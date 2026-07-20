@@ -51,7 +51,7 @@ public class SquareElement : BaseElement
 
         if (IsOccupied)
         {
-            Debug.WriteLine($"Is occupied at X: {Point.X} Y: {Point.Y} with point X: {point.X} Y: {point.Y}");
+            //Debug.WriteLine($"Is occupied at X: {Point.X} Y: {Point.Y} with point X: {point.X} Y: {point.Y}");
         }
 
         return IsOccupied;

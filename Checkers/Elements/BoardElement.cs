@@ -46,7 +46,7 @@ public class BoardElement
                 }
             }
         }
-        Debug.WriteLine($"occupied rect ammount {OccupiedNum}");
+        //Debug.WriteLine($"occupied rect ammount {OccupiedNum}");
     }
 
     public void CheckDiagonals(BasicChecker basic)
