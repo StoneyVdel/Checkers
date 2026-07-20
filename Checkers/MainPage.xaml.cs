@@ -23,6 +23,7 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
+        StartServer();
         gameStart = true;
         BindingContext = this;
     }
@@ -149,28 +150,5 @@ public partial class MainPage : ContentPage
         e.Handled = true;
 
         ((SKCanvasView)sender).InvalidateSurface();
-    }
-
-    private void StartServer()
-    {
-        var hostAddress = Network.Network.GetWindowsIpAddress();
-
-        var logString = "Server created on : " + hostAddress; 
-
-        LogEntries.Add(logString);
-
-        user.ListenForOpponent();
-    }
-
-    private async void OnJoinServer(object sender, EventArgs args)
-    {
-        string endpoint = ClientHostEntry.Text;
-
-        user.JoinServer(endpoint);
-    }
-
-    private async void OnHostServer(object sender, EventArgs args)
-    {
-        StartServer();
     }
 }
