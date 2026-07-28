@@ -1,30 +1,29 @@
 ﻿using Checkers.Checker;
 using Checkers.Elements;
+using Checkers.Game;
 using Checkers.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Net.Sockets;
 
 namespace Checkers;
 
 public partial class MainPage : ContentPage
 {
-    private bool gameStart;
     private CheckerObject? selectedChecker;
-    private BoardElement boardElement = new BoardElement();
-    private static UserPlayer user = new UserPlayer();
-    private static OpponentPlayer opponent = new OpponentPlayer();
+    private BoardElement boardElement = new();
+    private static UserPlayer user = new();
+    private static OpponentPlayer opponent = new();
 
     public ObservableCollection<string> LogEntries { get; set; } = new();
 
     public MainPage()
     {
         InitializeComponent();
-        gameStart = true;
-        BindingContext = this;
+
+        GameLogic.OnLogicChanged += CheckLogicChanges;
     }
 
     private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -32,16 +31,20 @@ public partial class MainPage : ContentPage
         SKCanvas canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.White);
 
-        if (gameStart)
+        PrepareBoard(canvas);
+        UpdateElements();
+        DrawElements(canvas);
+    }
+
+    public void CheckLogicChanges()
+    {
+        if (GameLogic.GameStart)
         {
-            gameStart = false;
-            PrepareBoard(canvas);
+            user.Starts = GameLogic.Starts.HasValue && GameLogic.Starts.Value;
+            opponent.Starts = GameLogic.Starts.HasValue && !GameLogic.Starts.Value;
         }
 
-        //Debug.WriteLine("Update Started!");
-        UpdateElements();
-        //Debug.WriteLine("Update Ended!");
-        DrawElements(canvas);
+        canvas.InvalidateSurface();
     }
 
     private void PrepareBoard(SKCanvas canvas)
@@ -71,15 +74,16 @@ public partial class MainPage : ContentPage
                         var sqRadius = boardElement.rectWidth / 2;
                         var checkerPoint = new Point(col + sqRadius, row + sqRadius);
                         var radius = sqRadius - 5;
+                        var ccolor = SKColors.Transparent;
 
                         if ((row < (boardElement.rectHeight * 3)))
                         {
-                            var element = new ElementClass(checkerPoint, cord, radius, SKColors.White);
+                            var element = new ElementClass(checkerPoint, cord, radius, ccolor);
                             opponent.AddChecker(element, false);
                         }
                         else if ((row >= 5 * boardElement.rectHeight))
                         {
-                            var element = new ElementClass(checkerPoint, cord, radius, SKColors.Red);
+                            var element = new ElementClass(checkerPoint, cord, radius, ccolor);
                             user.AddChecker(element, true);
                         }
                     }
@@ -91,6 +95,7 @@ public partial class MainPage : ContentPage
     private void DrawElements(SKCanvas canvas)
     {
         boardElement.Draw(canvas);
+
         opponent.Draw(canvas);
         user.Draw(canvas);
     }
@@ -103,55 +108,60 @@ public partial class MainPage : ContentPage
         boardElement.UpdateState(points);
     }
 
-    private void OnCanvasTouch(object sender, SKTouchEventArgs e)
+    private async void OnCanvasTouch(object sender, SKTouchEventArgs e)
     {
         float x = e.Location.X;
         float y = e.Location.Y;
         Point touch = new Point(x, y);
-        
-        switch (e.ActionType)
+
+        if (user.IsTurn && GameLogic.GameStart)
         {
-            case SKTouchAction.Pressed:
-                selectedChecker = user.CheckPosition(touch);
-                if (selectedChecker != null)
-                {
-                    boardElement.CheckDiagonals(selectedChecker.basic);
-                }
-                break;
 
-            case SKTouchAction.Moved:
-                bool isXValid = x > 0 && x < boardElement.boardWidth;
-                bool isYValid = y > 0 && y < boardElement.boardHeight;
-                if (selectedChecker != null && isXValid && isYValid)
-                {
-                    selectedChecker.basic.element.Point = touch;
-                }
-                break;
-
-            case SKTouchAction.Released:
-                if (selectedChecker != null)
-                {
-                    var (newPoint, newCord) = boardElement.CheckHoveredSquares(touch);
-
-                    if(newPoint.HasValue && newCord != null)
+            switch (e.ActionType)
+            {
+                case SKTouchAction.Pressed:
+                    selectedChecker = user.CheckPosition(touch);
+                    if (selectedChecker != null)
                     {
-                        selectedChecker.SetPointAndCord(newPoint.Value, newCord);
+                        boardElement.CheckDiagonals(selectedChecker.basic);
                     }
-                    else 
-                    { 
-                        selectedChecker.SnapBack();
+                    break;
+
+                case SKTouchAction.Moved:
+                    bool isXValid = x > 0 && x < boardElement.boardWidth;
+                    bool isYValid = y > 0 && y < boardElement.boardHeight;
+                    if (selectedChecker != null && isXValid && isYValid)
+                    {
+                        selectedChecker.basic.element.Point = touch;
                     }
-                    selectedChecker = null;
-                }
-                break;
+                    break;
+
+                case SKTouchAction.Released:
+                    if (selectedChecker != null)
+                    {
+                        var (newPoint, newCord) = boardElement.CheckHoveredSquares(touch);
+
+                        if (newPoint.HasValue && newCord != null && newCord != selectedChecker.basic.element.Cord)
+                        {
+                            selectedChecker.SetPointAndCord(newPoint.Value, newCord);
+                            //await user.EndMove();
+                        }
+                        else
+                        {
+                            selectedChecker.SnapBack();
+                        }
+                        selectedChecker = null;
+                    }
+                    break;
+            }
+
+            e.Handled = true;
+
+            ((SKCanvasView)sender).InvalidateSurface();
         }
-
-        e.Handled = true;
-
-        ((SKCanvasView)sender).InvalidateSurface();
     }
 
-    private void StartServer()
+    private async Task StartServer()
     {
         var hostAddress = Network.Network.GetWindowsIpAddress();
 
@@ -159,18 +169,43 @@ public partial class MainPage : ContentPage
 
         LogEntries.Add(logString);
 
-        user.ListenForOpponent();
+        var result = await user.ListenForOpponent();
+
+        if(result)
+        {
+            LogEntries.Add("Opponent connected");
+        }
+        else
+        {
+            LogEntries.Add("Failed to connect opponent");
+        }
+    }
+
+    //TODO Instead of calling this as static, make it an update response after connected
+    public static async Task StartGame(Socket client)
+    {
+        var playerSide = GameLogic.SelectSides();
+
+        GameLogic.SetSide(playerSide);
+
+        var gameStatusMessage = BaseMessage.ConcatMessages(CommandCategory.StartGame.Value,
+        opponent.Starts.HasValue && opponent.Starts.Value ? GameStatus.White.Value : GameStatus.Red.Value);
+
+        await user.SendCommand(client, gameStatusMessage);
     }
 
     private async void OnJoinServer(object sender, EventArgs args)
     {
+        HostServer.IsEnabled = false;
         string endpoint = ClientHostEntry.Text;
 
-        user.JoinServer(endpoint);
+        await user.JoinServer(endpoint);
     }
 
     private async void OnHostServer(object sender, EventArgs args)
     {
-        StartServer();
+        ConnectButton.IsEnabled = false;
+
+        await StartServer();
     }
 }
