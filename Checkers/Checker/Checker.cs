@@ -42,4 +42,9 @@ public class CheckerObject
         basic.element.Point = point;
         basic.element.Cord = cord;
     }
+
+    public void SetColor(SKColor color)
+    {
+        basic.element.Color = color;
+    }   
 }

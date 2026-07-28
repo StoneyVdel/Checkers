@@ -1,13 +1,13 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using Checkers.Game;
+using System.Diagnostics;
 
 namespace Checkers.Network;
 
-public class SocketServer
+public class SocketServer : BaseSocket
 {
-    public async void ListenServer()
+    public async Task<bool> ListenServer()
     {
         using Socket ConnectionSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
@@ -24,30 +24,34 @@ public class SocketServer
         ConnectionSocket.Listen(Network.Backlog);
 
         var handler = await ConnectionSocket.AcceptAsync();
-        while (true)
+
+        if (handler.Connected)
         {
-            // Receive message.
-            var buffer = new byte[1_024];
-            var received = await handler.ReceiveAsync(buffer, SocketFlags.None);
-            var response = Encoding.UTF8.GetString(buffer, 0, received);
+            await base.SendMessage(handler, GameStatus.Connected.Value);
+            var response = await base.ReceiveMessage(handler);
+            await ProcessMessage(handler, response);
 
-            var eom = "<|EOM|>";
-            if (response.IndexOf(eom) > -1 /* is end of message */)
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task ProcessMessage(Socket client, string message)
+    {
+        if (message.StartsWith(GameStatus.Tag))
+        {
+            var gameStateData = message.Substring(GameStatus.Tag.Length);
+            Debug.WriteLine($"Socket server received game state: \"{gameStateData}\"");
+
+            switch (gameStateData)
             {
-                Debug.WriteLine(
-                    $"Socket server received message: \"{response.Replace(eom, "")}\"");
-
-                var ackMessage = "<|ACK|>";
-                var echoBytes = Encoding.UTF8.GetBytes(ackMessage);
-                await handler.SendAsync(echoBytes, 0);
-                Debug.WriteLine(
-                    $"Socket server sent acknowledgment: \"{ackMessage}\"");
-
-                break;
+                case GameStatus.CONNECTED:
+                    await MainPage.StartGame(client);
+                    GameLogic.StartGame();
+                
+                    break;
             }
-            // Sample output:
-            //    Socket server received message: "Hi friends 👋!"
-            //    Socket server sent acknowledgment: "<|ACK|>"
         }
     }
 }

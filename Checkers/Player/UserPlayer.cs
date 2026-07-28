@@ -1,23 +1,38 @@
 ﻿using System.Net;
 using Checkers.Network;
+using Checkers.Game;
+using System.Net.Sockets;
 
 namespace Checkers.Player;
 
 public class UserPlayer : BasePlayer
 {
-    private SocketClient socketClient = new SocketClient();
-    private SocketServer socketServer = new SocketServer();
+    private SocketClient socketClient = new ();
 
-    public void ListenForOpponent()
+    private SocketServer socketServer = new();
+
+    public async Task<bool>  ListenForOpponent()
     {
-        socketServer.ListenServer();
+        var result = await socketServer.ListenServer();
+
+        return result;
     }
 
-    public void JoinServer(string endpoint)
+    public async Task JoinServer(string endpoint)
     {
         var ipAddress = IPAddress.Parse(endpoint);
         var ep = new IPEndPoint(ipAddress, Network.Network.Port);
 
-        socketClient.ClientConnect(ep);
+        await socketClient.ClientConnect(ep);
+    }
+
+    public async Task EndMove(Socket client)
+    {
+        await socketClient.SendMessage(client, CommandCategory.EndTurn.Value);
+    }
+
+    public async Task SendCommand(Socket client, string command)
+    {
+        await socketClient.SendMessage(client, command);
     }
 }

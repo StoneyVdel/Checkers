@@ -8,6 +8,10 @@ public partial class BasePlayer
 {
     public List<CheckerObject> checkers = new List<CheckerObject>();
 
+    public bool? Starts { get; set; }
+
+    public bool IsTurn { get; set; } = true;
+
     public void AddChecker(ElementClass element, bool isUser)
     {
         checkers.Add(new CheckerObject(element, isUser));
@@ -37,6 +41,10 @@ public partial class BasePlayer
         {
             foreach (var checker in checkers)
             {
+                if (Starts.HasValue)
+                {
+                    checker.basic.element.Color = Starts.Value ? SKColors.White : SKColors.Red;
+                }
                 checker.Draw(canvas);
             }
         }

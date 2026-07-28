@@ -16,7 +16,7 @@
 
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="4">
                         <Label Grid.Row="0" Grid.Column="0" Text="Host/IP:" VerticalOptions="Center"/>
-                        <Entry Grid.Row="0" Grid.Column="1" x:Name="ClientHostEntry" Text="127.0.0.1"/>
+                        <Entry Grid.Row="0" Grid.Column="1" x:Name="ClientHostEntry" Text="192.168.0.153"/>
                     </Grid>
 
                     <HorizontalStackLayout Spacing="6">
