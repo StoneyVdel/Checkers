@@ -7,9 +7,14 @@ namespace Checkers.Network;
 
 public class SocketServer : BaseSocket
 {
-    public async Task<bool> ListenServer()
+    public async Task<string?> ListenServer()
     {
-        using Socket ConnectionSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+        client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+
+        client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
+        client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 2);
+        client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 2);
+        client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
         var hostName = Dns.GetHostName();
 
@@ -19,39 +24,48 @@ public class SocketServer : BaseSocket
 
         IPEndPoint ep = new IPEndPoint(localIpAddress, Network.Port);
 
-        ConnectionSocket.Bind(ep);
+        client.Bind(ep);
 
-        ConnectionSocket.Listen(Network.Backlog);
+        client.Listen(Network.Backlog);
 
-        var handler = await ConnectionSocket.AcceptAsync();
+        var handler = await client.AcceptAsync();
 
         if (handler.Connected)
         {
-            await base.SendMessage(handler, GameStatus.Connected.Value);
-            var response = await base.ReceiveMessage(handler);
-            await ProcessMessage(handler, response);
+            client = handler;
+            await SendMessage(GameStatus.Connected.Value);
+            var response = await base.ReceiveMessage();
 
-            return true;
+            return response;
         }
 
-        return false;
+        return null;
     }
 
-    public async Task ProcessMessage(Socket client, string message)
+    public new async Task ProcessMessage(string response)
     {
-        if (message.StartsWith(GameStatus.Tag))
-        {
-            var gameStateData = message.Substring(GameStatus.Tag.Length);
-            Debug.WriteLine($"Socket server received game state: \"{gameStateData}\"");
+        var messages = response.Split(';');
 
-            switch (gameStateData)
+        foreach (var message in messages)
+        {
+            if (message.StartsWith(GameStatus.Tag))
             {
-                case GameStatus.CONNECTED:
-                    await MainPage.StartGame(client);
-                    GameLogic.StartGame();
-                
-                    break;
+                var gameStateData = message.Substring(GameStatus.Tag.Length);
+                Debug.WriteLine($"Socket server received game state: \"{gameStateData}\"");
+
+                switch (gameStateData)
+                {
+                    case GameStatus.CONNECTED:
+                        if (MainPage.Instance != null)
+                        {
+                            GameLogic.StartGame();
+                            await MainPage.Instance.StartGame();
+                        }
+                        break;
+                }
             }
+
+            await base.ProcessMessage(message);
         }
     }
 }

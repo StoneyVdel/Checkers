@@ -1,6 +1,8 @@
-﻿namespace Checkers.Network;
+﻿using System.Net.Sockets;
+
+namespace Checkers.Network;
 
 public interface IBaseSocket
 {
-    public abstract Task ProcessMessage(string message);
+    public abstract Task ProcessMessage(string response);
 }

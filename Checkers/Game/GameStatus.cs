@@ -1,11 +1,17 @@
-﻿namespace Checkers.Game;
+﻿using Checkers.Checker;
+using System.Text.Json;
+namespace Checkers.Game;
 
 public class GameStatus : BaseMessage
 {
     public static readonly string Tag = "STATUS:";
 
-    protected GameStatus(string value) : base(value, Tag)
+    public GameStatus(string value, BasicChecker? checker = null) : base(value, Tag)
     {
+        if (value.Equals(CHECKER_DATA) && checker != null)
+        {
+            Value = Value + JsonSerializer.Serialize(checker);
+        }
     }
 
     public static GameStatus White { get; } = new GameStatus(WHITE);
@@ -23,5 +29,7 @@ public class GameStatus : BaseMessage
     public const string WHITE = "WHITE";
 
     public const string RED = "RED";
+
+    public const string CHECKER_DATA = "CHECKER_DATA|";
 
 }
