@@ -51,7 +51,7 @@
             
         </Grid>
 
-        <Grid Grid.Column="1" >
+        <Grid Grid.Column="1" RowDefinitions="*,Auto">
             <skia:SKCanvasView  
                 x:Name="canvas"
                 BackgroundColor="Red"
@@ -60,6 +60,13 @@
                 EnableTouchEvents="true"
                 Touch="OnCanvasTouch"
                 PaintSurface="OnCanvasViewPaintSurface" />
+
+            <Label x:Name="CoordinateLabel" 
+               Grid.Row="1" 
+               Text="X: 0, Y: 0" 
+               HorizontalOptions="Center"
+               FontSize="14"
+               Padding="10" />
         </Grid>
         
     </Grid>

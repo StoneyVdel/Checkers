@@ -1,6 +1,5 @@
 ﻿using Checkers.Checker;
 using SkiaSharp;
-using System.Diagnostics;
 
 namespace Checkers.Elements;
 

@@ -6,7 +6,7 @@ using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using System.Collections.ObjectModel;
-using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace Checkers;
 
@@ -14,15 +14,18 @@ public partial class MainPage : ContentPage
 {
     private CheckerObject? selectedChecker;
     private BoardElement boardElement = new();
-    private static UserPlayer user = new();
-    private static OpponentPlayer opponent = new();
+    private UserPlayer user = new();
+    private OpponentPlayer opponent = new();
+    private bool FirstLoad = true;
+    public static MainPage? Instance { get; private set; }
 
     public ObservableCollection<string> LogEntries { get; set; } = new();
 
     public MainPage()
     {
         InitializeComponent();
-
+        BindingContext = this;
+        Instance = this;
         GameLogic.OnLogicChanged += CheckLogicChanges;
     }
 
@@ -31,20 +34,36 @@ public partial class MainPage : ContentPage
         SKCanvas canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.White);
 
-        PrepareBoard(canvas);
+        if (FirstLoad)
+        {
+            PrepareBoard(canvas);
+            FirstLoad = false;
+        }
+
         UpdateElements();
         DrawElements(canvas);
     }
 
-    public void CheckLogicChanges()
+    public void SetSide(bool isUserStarts)
+    {
+        user.Starts = GameLogic.Starts.HasValue && GameLogic.Starts.Value;
+        opponent.Starts = GameLogic.Starts.HasValue && !GameLogic.Starts.Value;
+    }
+
+    public async void CheckLogicChanges()
     {
         if (GameLogic.GameStart)
         {
-            user.Starts = GameLogic.Starts.HasValue && GameLogic.Starts.Value;
-            opponent.Starts = GameLogic.Starts.HasValue && !GameLogic.Starts.Value;
-        }
+            user.IsTurn = GameLogic.WhiteTurn == user.Starts;
+            opponent.IsTurn = GameLogic.WhiteTurn == opponent.Starts;
 
-        canvas.InvalidateSurface();
+            canvas.InvalidateSurface();
+
+            if (!user.IsTurn)
+            {
+                await user.WaitForMessage();
+            }
+        }
     }
 
     private void PrepareBoard(SKCanvas canvas)
@@ -113,6 +132,7 @@ public partial class MainPage : ContentPage
         float x = e.Location.X;
         float y = e.Location.Y;
         Point touch = new Point(x, y);
+        CoordinateLabel.Text = $"X: {x:F2}, Y: {y:F2}";
 
         if (user.IsTurn && GameLogic.GameStart)
         {
@@ -144,7 +164,9 @@ public partial class MainPage : ContentPage
                         if (newPoint.HasValue && newCord != null && newCord != selectedChecker.basic.element.Cord)
                         {
                             selectedChecker.SetPointAndCord(newPoint.Value, newCord);
-                            //await user.EndMove();
+                            var commandMessage = BaseMessage.ConcatMessages(CommandCategory.EndTurn.Value, new GameStatus(GameStatus.CHECKER_DATA, selectedChecker.basic).Value);
+                            await user.SendCommand(commandMessage);
+                            GameLogic.EndTurn();
                         }
                         else
                         {
@@ -161,6 +183,19 @@ public partial class MainPage : ContentPage
         }
     }
 
+    public async Task CheckerChange(BasicChecker checker)
+    {
+        checker.MirrorCoordinates(boardElement);
+
+        var targetChecker = opponent.checkers.FirstOrDefault(c => c.basic.element.Point == checker.element.OldPoint);
+        if (targetChecker != null)
+        {
+            targetChecker.SetPointAndCord(checker.element.Point, checker.element.Cord);
+        }
+
+        CheckLogicChanges();
+    }
+
     private async Task StartServer()
     {
         var hostAddress = Network.Network.GetWindowsIpAddress();
@@ -169,20 +204,10 @@ public partial class MainPage : ContentPage
 
         LogEntries.Add(logString);
 
-        var result = await user.ListenForOpponent();
-
-        if(result)
-        {
-            LogEntries.Add("Opponent connected");
-        }
-        else
-        {
-            LogEntries.Add("Failed to connect opponent");
-        }
+        await user.ListenServer();
     }
 
-    //TODO Instead of calling this as static, make it an update response after connected
-    public static async Task StartGame(Socket client)
+    public async Task StartGame()
     {
         var playerSide = GameLogic.SelectSides();
 
@@ -191,7 +216,7 @@ public partial class MainPage : ContentPage
         var gameStatusMessage = BaseMessage.ConcatMessages(CommandCategory.StartGame.Value,
         opponent.Starts.HasValue && opponent.Starts.Value ? GameStatus.White.Value : GameStatus.Red.Value);
 
-        await user.SendCommand(client, gameStatusMessage);
+        await user.SendCommand(gameStatusMessage);
     }
 
     private async void OnJoinServer(object sender, EventArgs args)

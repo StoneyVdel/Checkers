@@ -1,6 +1,4 @@
-﻿using System.Net.Sockets;
-
-namespace Checkers.Game;
+﻿namespace Checkers.Game;
 
 public static class GameLogic
 {
@@ -9,6 +7,8 @@ public static class GameLogic
     public static bool GameStart { get; private set; } = false;  
 
     public static bool? Starts { get; private set; }
+
+    public static bool WhiteTurn { get; private set; } = true;
 
     public static bool SelectSides()
     {
@@ -22,13 +22,21 @@ public static class GameLogic
     public static void StartGame()
     {
         GameStart = true;
-        OnLogicChanged?.Invoke();
     }
 
     public static void SetSide(bool starts)
     {
         Starts = starts;
-        OnLogicChanged?.Invoke();
+        if (MainPage.Instance != null)
+        {
+            MainPage.Instance.SetSide(starts);
+            OnLogicChanged?.Invoke();
+        }
     }
 
+    public static void EndTurn()
+    {
+        WhiteTurn = !WhiteTurn;
+        OnLogicChanged?.Invoke();
+    }
 }

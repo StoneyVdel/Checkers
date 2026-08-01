@@ -2,7 +2,7 @@
 
 public partial class BaseMessage
 {
-    public string Value { get; private set; }
+    public string Value { get; protected set; }
 
     protected BaseMessage(string value, string tag = "")
     {

@@ -1,14 +1,15 @@
 ﻿using SkiaSharp;
+using System.Text.Json.Serialization;
 
 namespace Checkers.Elements;
 
 public class ElementClass : BaseElement
 {
+    [JsonPropertyName("oldPoint")]
     public Point OldPoint { get; set; }
 
+    [JsonPropertyName("radius")]
     public float Radius { get; set; }
-
-    public BoardCordElement Cord { get; set; }
 
     public ElementClass(Point point, BoardCordElement cord, float radius, SKColor color)
     {

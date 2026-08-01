@@ -9,9 +9,14 @@ public class SocketClient : BaseSocket
 {
     public async Task ClientConnect(EndPoint endpoint)
     {
-        using Socket client = new(
+        client = new(
         SocketType.Stream,
         ProtocolType.Tcp);
+
+        client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
+        client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 2);
+        client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 2);
+        client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
         try
         {
@@ -20,45 +25,26 @@ public class SocketClient : BaseSocket
         catch (Exception ex)
         {
             Console.WriteLine($"Error connecting to server: {ex.Message}");
-
-            return;
         }
 
         if (client.Connected)
         {
-            await WaitForMessaage(client);
+            await WaitForMessage();
         }
     }
 
-    private async Task WaitForMessaage(Socket client)
+    private async Task WaitForMessage()
     {
-        var response = await base.ReceiveMessage(client);
-        await ProcessMessage(client, response);
+        var response = await base.ReceiveMessage();
+        await ProcessMessage(response);
     }
 
-    private async Task ProcessMessage(Socket client, string response)
+    public new async Task ProcessMessage(string response)
     {
         var messages = response.Split(';');
 
         foreach (var message in messages)
-        {
-
-            if (message.StartsWith(CommandCategory.Tag))
-            {
-                var command = message.Substring(CommandCategory.Tag.Length);
-                Debug.WriteLine($"Socket client received command: \"{command}\"");
-
-                switch (command)
-                {
-                    case CommandCategory.EndTurnTag:
-                        // Handle end turn command
-                        break;
-                    case CommandCategory.StartGameTag:
-                        GameLogic.StartGame();
-                        break;
-                }
-            }
-
+        { 
             if (message.StartsWith(GameStatus.Tag))
             {
                 var gameStateData = message.Substring(GameStatus.Tag.Length);
@@ -73,12 +59,14 @@ public class SocketClient : BaseSocket
                         GameLogic.SetSide(false);
                         break;
                     case GameStatus.CONNECTED:
-                        await base.SendMessage(client, GameStatus.Connected.Value);
-                        await WaitForMessaage(client);
+                        await base.SendMessage(GameStatus.Connected.Value);
+                        await WaitForMessage();
 
                         break;
                 }
             }
+
+            await base.ProcessMessage(message);
         }
     }
 }

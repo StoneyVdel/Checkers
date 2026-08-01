@@ -10,7 +10,7 @@ public partial class BasePlayer
 
     public bool? Starts { get; set; }
 
-    public bool IsTurn { get; set; } = true;
+    public bool IsTurn { get; set; } = false;
 
     public void AddChecker(ElementClass element, bool isUser)
     {
