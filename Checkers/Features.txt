@@ -1,2 +1,6 @@
 TODO
-	- Game logic: make turns
+	- Attacking
+	- have textures
+	- king pieces
+	- win condition
+	- if a piece can attack other pieces should not be able to move

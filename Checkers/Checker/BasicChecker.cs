@@ -28,4 +28,9 @@ public class BasicChecker
         element.OldPoint = new Point(board.boardWidth -  element.OldPoint.X, board.boardHeight - element.OldPoint.Y);
         element.Point = new Point(board.boardWidth - element.Point.X, board.boardHeight - element.Point.Y);
     }
+
+    public void SetCord(BoardCordElement cord)
+    {
+        element.Cord = cord;
+    }
 }

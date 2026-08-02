@@ -50,16 +50,9 @@ public partial class BasePlayer
         }
     }
 
-    public List<Point> GetPoints()
+    public List<BasicChecker> GetPoints()
     {
-        var points = new List<Point>(); 
-
-        foreach(var checker in checkers)
-        {
-            points.Add(checker.GetPoint());
-        }
-
-        return points;
+        return checkers.Select(c => c.basic).ToList();
     }
 
     public void DeleteAttacked()
