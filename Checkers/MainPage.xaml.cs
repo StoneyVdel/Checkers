@@ -121,10 +121,19 @@ public partial class MainPage : ContentPage
 
     private void UpdateElements()
     {
+        var points = GetAllCheckers();
+        if (points != null)
+        {
+            boardElement.UpdateState(points);
+        }
+    }
+
+    private BasicChecker[] GetAllCheckers()
+    {
         var points = opponent.GetPoints();
         points.AddRange(user.GetPoints());
 
-        boardElement.UpdateState(points);
+        return points.ToArray();
     }
 
     private async void OnCanvasTouch(object sender, SKTouchEventArgs e)
@@ -143,7 +152,8 @@ public partial class MainPage : ContentPage
                     selectedChecker = user.CheckPosition(touch);
                     if (selectedChecker != null)
                     {
-                        boardElement.CheckDiagonals(selectedChecker.basic);
+                        var allCheckers = GetAllCheckers();
+                        boardElement.CheckDiagonals(selectedChecker.basic, allCheckers);
                     }
                     break;
 
@@ -174,6 +184,7 @@ public partial class MainPage : ContentPage
                         }
                         selectedChecker = null;
                     }
+                    boardElement.ClearSelectable();
                     break;
             }
 

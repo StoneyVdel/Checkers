@@ -13,8 +13,6 @@ public class SquareElement : BaseElement
 
     public bool IsOccupied { get; set; } = false;
 
-    public bool IsAttacked { get; set; } = false;
-
     public SquareElement(BaseElement baseElement, int rectWidth, int rectHeight)
     {
         this.Point = baseElement.Point;

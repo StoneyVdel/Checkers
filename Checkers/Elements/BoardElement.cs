@@ -31,15 +31,16 @@ public class BoardElement
         }
     }
 
-    public void UpdateState(List<Point> points, bool isOpponent = false)
+    public void UpdateState(BasicChecker[] points)
     {
         var OccupiedNum = 0;  
         foreach (var rect in boardRects)
         {
             foreach(var point in points)
             {
-                if(rect.checkOccupied(point))
+                if(rect.checkOccupied(point.element.Point))
                 {
+                    point.SetCord(rect.Cord);
                     OccupiedNum++;
                     break;
                 }
@@ -48,7 +49,7 @@ public class BoardElement
         //Debug.WriteLine($"occupied rect ammount {OccupiedNum}");
     }
 
-    public void CheckDiagonals(BasicChecker basic)
+    public void CheckDiagonals(BasicChecker basic, BasicChecker[] allCheckers)
     {
         var DiagonalRowList = new Dictionary<string, List<SquareElement>>
         {
@@ -76,15 +77,16 @@ public class BoardElement
             {
                 isForward = true;
             }
-            CheckMove(DiagonalRowList[row], basic, isForward);
+            CheckMove(DiagonalRowList[row], basic, isForward, allCheckers);
         }
     }
 
-    private void CheckMove(List<SquareElement> row, BasicChecker basic, bool isForward)
+    private void CheckMove(List<SquareElement> row, BasicChecker basic, bool isForward, BasicChecker[] allCheckers)
     {
         if(!basic.IsKing)
         {
-            if (row.Count > 1 && row[0].IsOccupied && row[1].IsOccupied && !basic.IsUser)
+            var isOccupiedByOpponent = row.Count > 0 && row[0].IsOccupied && allCheckers.Any(c => c.element.Cord == row[0].Cord && !c.IsUser);
+            if (row.Count > 1 && row[0].IsOccupied && !row[1].IsOccupied && basic.IsUser && isOccupiedByOpponent)
             {
                 basic.IsAttacking = true;
                 row[1].SetSelectable(true);
