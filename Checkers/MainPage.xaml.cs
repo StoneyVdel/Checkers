@@ -122,6 +122,9 @@ public partial class MainPage : ContentPage
     private void UpdateElements()
     {
         var points = GetAllCheckers();
+        user.DeleteAttacked();
+        opponent.DeleteAttacked();
+
         if (points != null)
         {
             boardElement.UpdateState(points);
@@ -145,13 +148,14 @@ public partial class MainPage : ContentPage
 
         if (user.IsTurn && GameLogic.GameStart)
         {
-
+            CheckAttacking();
             switch (e.ActionType)
             {
                 case SKTouchAction.Pressed:
                     selectedChecker = user.CheckPosition(touch);
                     if (selectedChecker != null)
                     {
+                        selectedChecker.basic.IsSelected = true;
                         var allCheckers = GetAllCheckers();
                         boardElement.CheckDiagonals(selectedChecker.basic, allCheckers);
                     }
@@ -174,7 +178,13 @@ public partial class MainPage : ContentPage
                         if (newPoint.HasValue && newCord != null && newCord != selectedChecker.basic.element.Cord)
                         {
                             selectedChecker.SetPointAndCord(newPoint.Value, newCord);
+
                             var commandMessage = BaseMessage.ConcatMessages(CommandCategory.EndTurn.Value, new GameStatus(GameStatus.CHECKER_DATA, selectedChecker.basic).Value);
+                            if(selectedChecker.basic.IsAttacking)
+                            {
+                                var killedChecker = KilledChecker(selectedChecker.basic);
+                                commandMessage = BaseMessage.ConcatMessages(commandMessage, new GameStatus(GameStatus.CHECKER_DATA, killedChecker).Value);
+                            }
                             await user.SendCommand(commandMessage);
                             GameLogic.EndTurn();
                         }
@@ -182,6 +192,7 @@ public partial class MainPage : ContentPage
                         {
                             selectedChecker.SnapBack();
                         }
+                        selectedChecker.basic.IsSelected = false;
                         selectedChecker = null;
                     }
                     boardElement.ClearSelectable();
@@ -193,15 +204,49 @@ public partial class MainPage : ContentPage
             ((SKCanvasView)sender).InvalidateSurface();
         }
     }
+    
+    private BasicChecker? KilledChecker(BasicChecker checker)
+    {
+        double offsetX = (checker.element.Point.X - checker.element.OldPoint.X)/2;
+        double offsetY = (checker.element.Point.Y - checker.element.OldPoint.Y)/2;
 
+        var targetChecker = opponent.checkers.FirstOrDefault(c => c.basic.element.Point == (checker.element.OldPoint.Offset(offsetX, offsetY)));
+        if (targetChecker != null)
+        {
+            targetChecker.basic.IsDeleted = true;
+        }
+
+        return targetChecker?.basic;
+    }
+
+    private void CheckAttacking()
+    {
+        var allCheckers = GetAllCheckers();
+        foreach(var checker in user.GetPoints()) {
+            boardElement.CheckDiagonals(checker, allCheckers);
+        }
+    }
+    
     public async Task CheckerChange(BasicChecker checker)
     {
         checker.MirrorCoordinates(boardElement);
 
-        var targetChecker = opponent.checkers.FirstOrDefault(c => c.basic.element.Point == checker.element.OldPoint);
+        var allCheckers = GetAllCheckers();
+        BasicChecker? targetChecker = null;
+        if (!checker.IsDeleted)
+        {
+            targetChecker = allCheckers.FirstOrDefault(c => c.element.Point == checker.element.OldPoint);
+        }
+        else
+        {
+            targetChecker = allCheckers.FirstOrDefault(c => c.element.Point == checker.element.Point);
+        }
+
         if (targetChecker != null)
         {
-            targetChecker.SetPointAndCord(checker.element.Point, checker.element.Cord);
+            targetChecker.element.Point = checker.element.Point;
+            targetChecker.element.Cord = checker.element.Cord;
+            targetChecker.IsDeleted = checker.IsDeleted;
         }
 
         CheckLogicChanges();

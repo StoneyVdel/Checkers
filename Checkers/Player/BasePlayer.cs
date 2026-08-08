@@ -57,6 +57,6 @@ public partial class BasePlayer
 
     public void DeleteAttacked()
     {
-        checkers.RemoveAll(x => x.IsAttacked);
+        checkers.RemoveAll(x => x.basic.IsDeleted);
     }
 }

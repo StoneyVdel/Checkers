@@ -5,8 +5,6 @@ namespace Checkers.Checker;
 
 public class CheckerObject
 {
-    public bool IsAttacked = false;
-
     public BasicChecker basic { get; set; }
 
     public CheckerObject(ElementClass element, bool isUser)

@@ -86,12 +86,16 @@ public class BoardElement
         if(!basic.IsKing)
         {
             var isOccupiedByOpponent = row.Count > 0 && row[0].IsOccupied && allCheckers.Any(c => c.element.Cord == row[0].Cord && !c.IsUser);
+            
             if (row.Count > 1 && row[0].IsOccupied && !row[1].IsOccupied && basic.IsUser && isOccupiedByOpponent)
             {
                 basic.IsAttacking = true;
-                row[1].SetSelectable(true);
+                if (basic.IsSelected)
+                {
+                    row[1].SetSelectable(true);
+                }
             }
-            else if (row.Count > 0 && !row[0].IsOccupied && !basic.IsAttacking && isForward)
+            else if (row.Count > 0 && !row[0].IsOccupied && !basic.IsAttacking && isForward && basic.IsSelected)
             {
                 row[0].SetSelectable(true);
             }
@@ -106,7 +110,10 @@ public class BoardElement
                 if (row.Count() > occupiedSquare && !row[occupiedSquare + 1].IsOccupied)
                 {
                     basic.IsAttacking = true;
-                    row[occupiedSquare + 1].SetSelectable(true);
+                    if (basic.IsSelected)
+                    {
+                        row[occupiedSquare + 1].SetSelectable(true);
+                    }
                 }
             }
         }

@@ -1,6 +1,6 @@
 TODO
-	- Attacking
+	- movement bug, where user cannot move a piece even if there is a free space
 	- have textures
 	- king pieces
 	- win condition
-	- if a piece can attack other pieces should not be able to move
+	- if a piece can attack other pieces should not be able to move : DID BUT NEED TESTING

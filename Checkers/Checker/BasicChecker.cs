@@ -17,6 +17,12 @@ public class BasicChecker
     [JsonPropertyName("IsUser")]
     public bool IsUser { get; init; }
 
+    [JsonPropertyName("IsSelected")]
+    public bool IsSelected { get; set; }
+
+    [JsonPropertyName("IsDeleted")]
+    public bool IsDeleted { get; set; } = false;
+
     public BasicChecker(ElementClass element, bool isUser)
     {
         this.element = element;
