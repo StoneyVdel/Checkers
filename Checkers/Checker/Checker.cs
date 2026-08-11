@@ -39,10 +39,20 @@ public class CheckerObject
     {
         basic.element.Point = point;
         basic.element.Cord = cord;
+        if(cord.Row == 0)
+        {
+            basic.IsKing = true;
+        }
     }
 
     public void SetColor(SKColor color)
     {
         basic.element.Color = color;
-    }   
+    }
+
+    public void ClearStatus()
+    {
+        basic.IsAttacking = false;
+        basic.IsSelected = false;
+    }
 }

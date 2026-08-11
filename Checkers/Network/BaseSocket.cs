@@ -30,7 +30,8 @@ public partial class BaseSocket : IBaseSocket
 
     public async Task<string> ReceiveMessage()
     {
-        var buffer = new byte[1_024];
+        const int BUFFER_SIZE = 1 * 1024 * 1024;
+        var buffer = new byte[BUFFER_SIZE];
         if (client != null)
         {
             var received = await client.ReceiveAsync(buffer, SocketFlags.None);
