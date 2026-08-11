@@ -1,4 +1,6 @@
-﻿namespace Checkers.Player;
+﻿using SkiaSharp;
+
+namespace Checkers.Player;
 
 public class OpponentPlayer : BasePlayer
 {

@@ -31,7 +31,7 @@ public class BoardElement
         }
     }
 
-    public void UpdateState(BasicChecker[] points)
+    public void UpdateState(List<BasicChecker> points)
     {
         var OccupiedNum = 0;  
         foreach (var rect in boardRects)
@@ -49,7 +49,7 @@ public class BoardElement
         //Debug.WriteLine($"occupied rect ammount {OccupiedNum}");
     }
 
-    public void CheckDiagonals(BasicChecker basic, BasicChecker[] allCheckers)
+    public void CheckDiagonals(BasicChecker basic, List<BasicChecker> allCheckers)
     {
         var DiagonalRowList = new Dictionary<string, List<SquareElement>>
         {
@@ -81,13 +81,13 @@ public class BoardElement
         }
     }
 
-    private void CheckMove(List<SquareElement> row, BasicChecker basic, bool isForward, BasicChecker[] allCheckers)
+    private void CheckMove(List<SquareElement> row, BasicChecker basic, bool isForward, List<BasicChecker> allCheckers)
     {
         if(!basic.IsKing)
         {
-            var isOccupiedByOpponent = row.Count > 0 && row[0].IsOccupied && allCheckers.Any(c => c.element.Cord == row[0].Cord && !c.IsUser);
+            var isOccupiedByOpponent = row.Count > 1 && row[0].IsOccupied && allCheckers.Any(c => c.element.Cord == row[0].Cord && !c.IsUser);
             
-            if (row.Count > 1 && row[0].IsOccupied && !row[1].IsOccupied && basic.IsUser && isOccupiedByOpponent)
+            if (row.Count > 1 && !row[1].IsOccupied && basic.IsUser && isOccupiedByOpponent)
             {
                 basic.IsAttacking = true;
                 if (basic.IsSelected)
@@ -95,24 +95,34 @@ public class BoardElement
                     row[1].SetSelectable(true);
                 }
             }
-            else if (row.Count > 0 && !row[0].IsOccupied && !basic.IsAttacking && isForward && basic.IsSelected)
+            else if (row.Count > 0 && !row[0].IsOccupied && isForward && basic.IsSelected && !basic.IsAttacking)
             {
                 row[0].SetSelectable(true);
             }
         }
         else
         {
-            var isAnyOccuppied = row.Any(x => x.IsOccupied);
+            var isAnyOccuppied = row.Any(x => x.IsOccupied && allCheckers.Any(c => c.element.Cord == x.Cord && !c.IsUser));
 
             if (isAnyOccuppied)
             {
-                var occupiedSquare = row.FindIndex(x => x.IsOccupied);
-                if (row.Count() > occupiedSquare && !row[occupiedSquare + 1].IsOccupied)
+                var occupiedSquare = row.FindIndex(x => x.IsOccupied && allCheckers.Any(c => c.element.Cord == x.Cord && !c.IsUser));
+                if (row.Count() > occupiedSquare + 1 && !row[occupiedSquare + 1].IsOccupied)
                 {
                     basic.IsAttacking = true;
                     if (basic.IsSelected)
                     {
                         row[occupiedSquare + 1].SetSelectable(true);
+                    }
+                }
+            }
+            else
+            {
+                if (row.Count > 0 && basic.IsSelected && !basic.IsAttacking)
+                {
+                    if (basic.IsSelected)
+                    {
+                        row.ForEach(x => x.SetSelectable(true));
                     }
                 }
             }

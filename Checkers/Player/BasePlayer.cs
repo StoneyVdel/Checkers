@@ -41,12 +41,24 @@ public partial class BasePlayer
         {
             foreach (var checker in checkers)
             {
-                if (Starts.HasValue)
+                if (Starts.HasValue && !checker.basic.IsKing)
                 {
-                    checker.basic.element.Color = Starts.Value ? SKColors.White : SKColors.Red;
+                    checker.SetColor(Starts.Value ? SKColors.White : SKColors.Red);
+                }
+                else if (Starts.HasValue && checker.basic.IsKing)
+                {
+                    checker.SetColor(Starts.Value ? SKColors.Gray : SKColors.DarkRed);
                 }
                 checker.Draw(canvas);
             }
+        }
+    }
+
+    public void ClearStatus()
+    {
+        foreach (var checker in checkers)
+        {
+            checker.ClearStatus();
         }
     }
 

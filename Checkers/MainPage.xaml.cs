@@ -17,6 +17,7 @@ public partial class MainPage : ContentPage
     private UserPlayer user = new();
     private OpponentPlayer opponent = new();
     private bool FirstLoad = true;
+    private string commandMessage = string.Empty;
     public static MainPage? Instance { get; private set; }
 
     public ObservableCollection<string> LogEntries { get; set; } = new();
@@ -42,6 +43,26 @@ public partial class MainPage : ContentPage
 
         UpdateElements();
         DrawElements(canvas);
+    }
+
+    private void DrawElements(SKCanvas canvas)
+    {
+        boardElement.Draw(canvas);
+
+        opponent.Draw(canvas);
+        user.Draw(canvas);
+    }
+
+    private void UpdateElements()
+    {
+        user.DeleteAttacked();
+        opponent.DeleteAttacked();
+
+        var points = GetAllCheckers();
+        if (points != null)
+        {
+            boardElement.UpdateState(points);
+        }
     }
 
     public void SetSide(bool isUserStarts)
@@ -111,32 +132,12 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void DrawElements(SKCanvas canvas)
-    {
-        boardElement.Draw(canvas);
-
-        opponent.Draw(canvas);
-        user.Draw(canvas);
-    }
-
-    private void UpdateElements()
-    {
-        var points = GetAllCheckers();
-        user.DeleteAttacked();
-        opponent.DeleteAttacked();
-
-        if (points != null)
-        {
-            boardElement.UpdateState(points);
-        }
-    }
-
-    private BasicChecker[] GetAllCheckers()
+    private List<BasicChecker> GetAllCheckers()
     {
         var points = opponent.GetPoints();
         points.AddRange(user.GetPoints());
 
-        return points.ToArray();
+        return points;
     }
 
     private async void OnCanvasTouch(object sender, SKTouchEventArgs e)
@@ -148,6 +149,7 @@ public partial class MainPage : ContentPage
 
         if (user.IsTurn && GameLogic.GameStart)
         {
+            user.ClearStatus();
             CheckAttacking();
             switch (e.ActionType)
             {
@@ -155,9 +157,14 @@ public partial class MainPage : ContentPage
                     selectedChecker = user.CheckPosition(touch);
                     if (selectedChecker != null)
                     {
+                        if(user.checkers.Any(c => c.basic.IsAttacking) && !selectedChecker.basic.IsAttacking)
+                        {
+                            selectedChecker = null;
+                            break;
+                        }
+
                         selectedChecker.basic.IsSelected = true;
-                        var allCheckers = GetAllCheckers();
-                        boardElement.CheckDiagonals(selectedChecker.basic, allCheckers);
+                        boardElement.CheckDiagonals(selectedChecker.basic, opponent.GetPoints());
                     }
                     break;
 
@@ -179,14 +186,24 @@ public partial class MainPage : ContentPage
                         {
                             selectedChecker.SetPointAndCord(newPoint.Value, newCord);
 
-                            var commandMessage = BaseMessage.ConcatMessages(CommandCategory.EndTurn.Value, new GameStatus(GameStatus.CHECKER_DATA, selectedChecker.basic).Value);
                             if(selectedChecker.basic.IsAttacking)
                             {
                                 var killedChecker = KilledChecker(selectedChecker.basic);
                                 commandMessage = BaseMessage.ConcatMessages(commandMessage, new GameStatus(GameStatus.CHECKER_DATA, killedChecker).Value);
+                                selectedChecker.basic.IsAttacking = false;
+                                commandMessage = BaseMessage.ConcatMessages(commandMessage, new GameStatus(GameStatus.CHECKER_DATA, selectedChecker.basic).Value);
+                                UpdateElements();
+                                boardElement.CheckDiagonals(selectedChecker.basic, opponent.GetPoints());
                             }
-                            await user.SendCommand(commandMessage);
-                            GameLogic.EndTurn();
+
+                            if (!selectedChecker.basic.IsAttacking)
+                            {
+                                commandMessage = BaseMessage.ConcatMessages(commandMessage, new GameStatus(GameStatus.CHECKER_DATA, selectedChecker.basic).Value);
+                                commandMessage = BaseMessage.ConcatMessages(commandMessage, CommandCategory.EndTurn.Value);
+                                await user.SendCommand(commandMessage);
+                                GameLogic.EndTurn();
+                                commandMessage = string.Empty;
+                            }
                         }
                         else
                         {
@@ -207,10 +224,10 @@ public partial class MainPage : ContentPage
     
     private BasicChecker? KilledChecker(BasicChecker checker)
     {
-        double offsetX = (checker.element.Point.X - checker.element.OldPoint.X)/2;
-        double offsetY = (checker.element.Point.Y - checker.element.OldPoint.Y)/2;
+        double offsetX = (checker.element.Point.X - checker.element.OldPoint.X) > 0 ? checker.element.Point.X - boardElement.rectWidth : checker.element.Point.X + boardElement.rectWidth;
+        double offsetY = (checker.element.Point.Y - checker.element.OldPoint.Y) > 0 ? checker.element.Point.Y - boardElement.rectHeight : checker.element.Point.Y + boardElement.rectHeight;
 
-        var targetChecker = opponent.checkers.FirstOrDefault(c => c.basic.element.Point == (checker.element.OldPoint.Offset(offsetX, offsetY)));
+        var targetChecker = opponent.checkers.FirstOrDefault(c => c.basic.element.Point == new Point(offsetX, offsetY));
         if (targetChecker != null)
         {
             targetChecker.basic.IsDeleted = true;
@@ -221,9 +238,8 @@ public partial class MainPage : ContentPage
 
     private void CheckAttacking()
     {
-        var allCheckers = GetAllCheckers();
         foreach(var checker in user.GetPoints()) {
-            boardElement.CheckDiagonals(checker, allCheckers);
+            boardElement.CheckDiagonals(checker, opponent.GetPoints());
         }
     }
     

@@ -1,6 +1,7 @@
-﻿using System.Net;
+﻿using Checkers.Game;
 using Checkers.Network;
-using Checkers.Game;
+using SkiaSharp;
+using System.Net;
 
 namespace Checkers.Player;
 
