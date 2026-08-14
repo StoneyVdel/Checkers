@@ -1,7 +1,10 @@
 TODO
 	- have textures
-	- king pieces
+	- king pieces : DONE
 	- win condition
 	- restart game
 	- disable buttons when playing for connectivity
 	- disable buttons when pressed "connect" or "host"
+	- automatic tests
+	- keep scores
+	- BUG: Disconnect crashes game

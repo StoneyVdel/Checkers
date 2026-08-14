@@ -21,7 +21,7 @@ public static class GameLogic
 
     public static void StartGame()
     {
-        GameStart = true;
+        GameStart = !GameStart;
     }
 
     public static void SetSide(bool starts)
