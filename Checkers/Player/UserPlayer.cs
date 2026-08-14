@@ -1,6 +1,5 @@
 ﻿using Checkers.Game;
 using Checkers.Network;
-using SkiaSharp;
 using System.Net;
 
 namespace Checkers.Player;
@@ -11,7 +10,7 @@ public class UserPlayer : BasePlayer
 
     private SocketServer socketServer = new();
 
-    private bool isServer = false;
+    public bool isServer = false;
 
     public async Task ListenServer()
     {
@@ -65,5 +64,15 @@ public class UserPlayer : BasePlayer
 
             await socketClient.ProcessMessage(response);
         }
+    }
+
+    public async Task CloseConnection()
+    {
+        if (isServer)
+        {
+            await socketServer.CloseConnection();
+        }
+        else
+            await socketClient.CloseConnection();
     }
 }

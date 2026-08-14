@@ -12,6 +12,8 @@ public partial class BasePlayer
 
     public bool IsTurn { get; set; } = false;
 
+    public int Score { get; private set; } 
+
     public void AddChecker(ElementClass element, bool isUser)
     {
         checkers.Add(new CheckerObject(element, isUser));
@@ -60,6 +62,13 @@ public partial class BasePlayer
         {
             checker.ClearStatus();
         }
+    }
+
+    public void Reset()
+    {
+        IsTurn = false;
+        Starts = null;
+        checkers.RemoveAll(c => true);
     }
 
     public List<BasicChecker> GetPoints()

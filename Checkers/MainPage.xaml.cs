@@ -57,12 +57,42 @@ public partial class MainPage : ContentPage
     {
         user.DeleteAttacked();
         opponent.DeleteAttacked();
+        var gameEnd = false;
 
-        var points = GetAllCheckers();
-        if (points != null)
-        {
-            boardElement.UpdateState(points);
+        if((user.checkers.Count == 0 || opponent.checkers.Count == 0)) {
+            gameEnd = true;
         }
+        if (user.Starts != null)
+        {
+            if (!gameEnd)
+            {
+                var points = GetAllCheckers();
+                if (points != null)
+                {
+                    boardElement.UpdateState(points);
+                }
+            }
+            else if (gameEnd)
+            {
+                var winner = user.checkers.Count > 0 ? "User" : "Opponent";
+                EndGame(winner);
+            }
+        }
+    }
+
+    private void EndGame(string winner)
+    {
+        var logString = $"Game Over! Winner: {winner}";
+        LogEntries.Add(logString);
+        user.Reset();
+        opponent.Reset();
+        FirstLoad = true;
+        boardElement = new();
+        if (user.isServer)
+        {
+            RestartButton.IsEnabled = true;
+        }
+        GameLogic.StartGame();
     }
 
     public void SetSide(bool isUserStarts)
@@ -263,6 +293,7 @@ public partial class MainPage : ContentPage
             targetChecker.element.Point = checker.element.Point;
             targetChecker.element.Cord = checker.element.Cord;
             targetChecker.IsDeleted = checker.IsDeleted;
+            targetChecker.IsKing = checker.IsKing;
         }
 
         CheckLogicChanges();
@@ -294,6 +325,8 @@ public partial class MainPage : ContentPage
     private async void OnJoinServer(object sender, EventArgs args)
     {
         HostServer.IsEnabled = false;
+        ConnectButton.IsEnabled = false;
+        DisconnectButton.IsEnabled = true;
         string endpoint = ClientHostEntry.Text;
 
         await user.JoinServer(endpoint);
@@ -302,7 +335,22 @@ public partial class MainPage : ContentPage
     private async void OnHostServer(object sender, EventArgs args)
     {
         ConnectButton.IsEnabled = false;
-
+        HostServer.IsEnabled = false;
+        DisconnectButton.IsEnabled = true;
         await StartServer();
+    }
+
+    private async void OnDisconnect(object sender, EventArgs args)
+    {
+        ConnectButton.IsEnabled = true;
+        HostServer.IsEnabled = true;
+        DisconnectButton.IsEnabled = false;
+        await user.CloseConnection();
+    }
+    private async void OnRestartGame(object sender, EventArgs args)
+    {
+        RestartButton.IsEnabled = false;
+        GameLogic.StartGame();
+        await StartGame();
     }
 }
