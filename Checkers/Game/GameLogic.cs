@@ -39,4 +39,12 @@ public static class GameLogic
         WhiteTurn = !WhiteTurn;
         OnLogicChanged?.Invoke();
     }
+
+    public static void ResetGame()
+    {
+        GameStart = false;
+        Starts = null;
+        WhiteTurn = true;
+        OnLogicChanged?.Invoke();
+    }
 }
