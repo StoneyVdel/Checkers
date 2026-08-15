@@ -14,7 +14,7 @@ public class UserPlayer : BasePlayer
 
     public async Task ListenServer()
     {
-        socketServer = new();
+        //socketServer = new();
         var result = await socketServer.ListenServer();
         if (result != null)
         {
@@ -25,7 +25,7 @@ public class UserPlayer : BasePlayer
 
     public async Task JoinServer(string endpoint)
     {
-        socketClient = new();
+        //socketClient = new();
         var ipAddress = IPAddress.Parse(endpoint);
         var ep = new IPEndPoint(ipAddress, Network.Network.Port);
 
@@ -73,6 +73,7 @@ public class UserPlayer : BasePlayer
         if (isServer)
         {
             await socketServer.CloseConnection();
+            isServer = false;
         }
         else
             await socketClient.CloseConnection();
