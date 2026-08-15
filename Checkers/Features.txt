@@ -9,4 +9,4 @@ TODO
 	- keep scores
 	- BUG: Disconnect crashes game : DONE
 	- reset game after disconnect : DONE
-	- BUG: when host changes after disconnect, the new host can't play
+	- BUG: when host changes after disconnect, the new host can't play : DONE
