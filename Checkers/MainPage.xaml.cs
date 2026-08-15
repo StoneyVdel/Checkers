@@ -80,10 +80,13 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void EndGame(string winner)
+    private void EndGame(string? winner = null)
     {
-        var logString = $"Game Over! Winner: {winner}";
-        LogEntries.Add(logString);
+        if(winner != null)
+        {
+            var logString = $"Game Over! Winner: {winner}";
+            LogEntries.Add(logString);
+        }
         user.Reset();
         opponent.Reset();
         FirstLoad = true;
@@ -92,7 +95,7 @@ public partial class MainPage : ContentPage
         {
             RestartButton.IsEnabled = true;
         }
-        GameLogic.StartGame();
+        GameLogic.ResetGame();
     }
 
     public void SetSide(bool isUserStarts)
@@ -322,6 +325,18 @@ public partial class MainPage : ContentPage
         await user.SendCommand(gameStatusMessage);
     }
 
+    public async Task ConnectionClose()
+    {
+        EndGame();
+        ConnectButton.IsEnabled = true;
+        HostServer.IsEnabled = true;
+        DisconnectButton.IsEnabled = false;
+        RestartButton.IsEnabled = false;
+        LogEntries.Add("Connection closed.");
+
+        await user.CloseConnection();
+    }
+
     private async void OnJoinServer(object sender, EventArgs args)
     {
         HostServer.IsEnabled = false;
@@ -342,11 +357,11 @@ public partial class MainPage : ContentPage
 
     private async void OnDisconnect(object sender, EventArgs args)
     {
-        ConnectButton.IsEnabled = true;
-        HostServer.IsEnabled = true;
-        DisconnectButton.IsEnabled = false;
-        await user.CloseConnection();
+        await user.SendCommand(GameStatus.Disconnected.Value);
+
+        await ConnectionClose();
     }
+
     private async void OnRestartGame(object sender, EventArgs args)
     {
         RestartButton.IsEnabled = false;

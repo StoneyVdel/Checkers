@@ -22,9 +22,18 @@ public partial class BaseSocket : IBaseSocket
 
         if (client != null)
         {
-            await client.SendAsync(messageBytes, SocketFlags.None);
-
-            Debug.WriteLine($"Socket base sent message: \"{message}\"");
+            try
+            {
+                await client.SendAsync(messageBytes, SocketFlags.None);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred while sending message: {ex.Message}");
+            }
+            finally
+            {
+                Debug.WriteLine($"Socket base sent message: \"{message}\"");
+            }
         }
     }
 
@@ -34,12 +43,18 @@ public partial class BaseSocket : IBaseSocket
         var buffer = new byte[BUFFER_SIZE];
         if (client != null)
         {
-            var received = await client.ReceiveAsync(buffer, SocketFlags.None);
-            var response = Encoding.UTF8.GetString(buffer, 0, received);
+            try
+            {
+                var received = await client.ReceiveAsync(buffer, SocketFlags.None);
+                var response = Encoding.UTF8.GetString(buffer, 0, received);
+                Debug.WriteLine($"Socket base received message: \"{response}\"");
 
-            Debug.WriteLine($"Socket base received message: \"{response}\"");
-
-            return response;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error occurred while receiving message: {ex.Message}");
+            }
         }
 
         return "";  
@@ -49,12 +64,25 @@ public partial class BaseSocket : IBaseSocket
     {
         if (client != null)
         {
-            await client.DisconnectAsync(false);
-            client.Close();
+            try
+            {
+                if (client.Connected)
+                {
+                    client.Shutdown(SocketShutdown.Both);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred while shutting down socket: {ex.Message}");
+            }
+            finally
+            {
+                client.Close();
+            }
         }
     }
 
-    public Task ProcessMessage(string response)
+    public async Task ProcessMessage(string response)
     {
 
         if (response.StartsWith(CommandCategory.Tag))
@@ -84,11 +112,13 @@ public partial class BaseSocket : IBaseSocket
                 var checkerData = JsonSerializer.Deserialize<BasicChecker>(checkerDataJson);
                 if (checkerData != null && MainPage.Instance != null)
                 {
-                    MainPage.Instance?.CheckerChange(checkerData);
+                    await MainPage.Instance.CheckerChange(checkerData);
                 }
             }
+            else if(status.Contains(GameStatus.DISCONNECTED) && MainPage.Instance != null)
+            {
+                await MainPage.Instance.ConnectionClose();
+            }
         }
-
-        return Task.CompletedTask;
     }
 }

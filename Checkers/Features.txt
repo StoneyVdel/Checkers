@@ -1,10 +1,12 @@
 TODO
 	- have textures
 	- king pieces : DONE
-	- win condition
-	- restart game
-	- disable buttons when playing for connectivity
-	- disable buttons when pressed "connect" or "host"
+	- win condition : DONE
+	- restart game : DONE
+	- disable buttons when playing for connectivity : DONE
+	- disable buttons when pressed "connect" or "host" : DONE
 	- automatic tests
 	- keep scores
-	- BUG: Disconnect crashes game
+	- BUG: Disconnect crashes game : DONE
+	- reset game after disconnect : DONE
+	- BUG: when host changes after disconnect, the new host can't play
