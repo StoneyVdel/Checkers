@@ -55,11 +55,10 @@ public partial class MainPage : ContentPage
 
     private void UpdateElements()
     {
-        user.DeleteAttacked();
-        opponent.DeleteAttacked();
         var gameEnd = false;
 
-        if((user.checkers.Count == 0 || opponent.checkers.Count == 0)) {
+        if ((user.checkers.Count == 0 || opponent.checkers.Count == 0))
+        {
             gameEnd = true;
         }
         if (user.Starts != null)
@@ -74,19 +73,33 @@ public partial class MainPage : ContentPage
             }
             else if (gameEnd)
             {
-                var winner = user.checkers.Count > 0 ? "User" : "Opponent";
+                var winner = user.checkers.Count > 0 ? true : false;
                 EndGame(winner);
             }
         }
+
+        user.DeleteAttacked();
+        opponent.DeleteAttacked();
     }
 
-    private void EndGame(string? winner = null)
+    private void EndGame(bool? winner = null)
     {
         if(winner != null)
         {
-            var logString = $"Game Over! Winner: {winner}";
+            var winnerString = winner.Value ? "User" : "Opponent";
+            if(winner.Value)
+            {
+                user.IncreaseScore();
+            }
+            else
+            {
+                opponent.IncreaseScore();
+            }
+            ScoreLabel.Text = $"User: {user.Score} | Opponent: {opponent.Score}";
+            var logString = $"Game Over! Winner: {winnerString}";
             LogEntries.Add(logString);
         }
+
         user.Reset();
         opponent.Reset();
         FirstLoad = true;
@@ -365,6 +378,7 @@ public partial class MainPage : ContentPage
     private async void OnRestartGame(object sender, EventArgs args)
     {
         RestartButton.IsEnabled = false;
+
         GameLogic.StartGame();
         await StartGame();
     }

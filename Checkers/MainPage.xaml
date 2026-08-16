@@ -55,9 +55,17 @@
             
         </Grid>
 
-        <Grid Grid.Column="1" RowDefinitions="*,Auto">
+        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto">
+            <Label x:Name="ScoreLabel"
+               Text = "User: 0 | Opponent: 0"
+               Grid.Row="0" 
+               HorizontalOptions="Center"
+               FontSize="24"
+               Padding="10" />
+            
             <skia:SKCanvasView  
                 x:Name="canvas"
+                Grid.Row="1" 
                 BackgroundColor="Red"
                 HeightRequest="640"
                 WidthRequest="640"
@@ -66,7 +74,7 @@
                 PaintSurface="OnCanvasViewPaintSurface" />
 
             <Label x:Name="CoordinateLabel" 
-               Grid.Row="1" 
+               Grid.Row="2" 
                Text="X: 0, Y: 0" 
                HorizontalOptions="Center"
                FontSize="14"
