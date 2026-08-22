@@ -45,6 +45,5 @@ public static class GameLogic
         GameStart = false;
         Starts = null;
         WhiteTurn = true;
-        OnLogicChanged?.Invoke();
     }
 }

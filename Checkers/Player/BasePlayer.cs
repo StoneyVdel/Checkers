@@ -12,7 +12,7 @@ public partial class BasePlayer
 
     public bool IsTurn { get; set; } = false;
 
-    public int Score { get; private set; } 
+    public int Score { get; private set; } = 0;
 
     public void AddChecker(ElementClass element, bool isUser)
     {
@@ -79,5 +79,10 @@ public partial class BasePlayer
     public void DeleteAttacked()
     {
         checkers.RemoveAll(x => x.basic.IsDeleted);
+    }
+
+    public void IncreaseScore()
+    {
+        Score++;
     }
 }

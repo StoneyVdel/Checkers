@@ -10,3 +10,7 @@ TODO
 	- BUG: Disconnect crashes game : DONE
 	- reset game after disconnect : DONE
 	- BUG: when host changes after disconnect, the new host can't play : DONE
+	- More logs
+	- Auto scaler UI 
+	- Mobile version
+	- BUG: When game is reset, both users can play at the same time : DONE
